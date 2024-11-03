@@ -16,6 +16,14 @@ app.use(express.json());
 
 connectDB();
 
+// Serve static files from the "public" directory
+app.use(express.static('public'));
+
+// Serve a default static image if no specific path is provided
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/welcome-image.jpg');
+});
+
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || 'Server Error' });
 });
@@ -23,7 +31,6 @@ app.use((err, req, res, next) => {
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
-
 
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: '*' } });
@@ -33,7 +40,7 @@ io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
   
   // Listen for user joining a room with consistent room ID format
-  socket.on('joinRoom', (roomId,lexusId1,lexusId2) => {
+  socket.on('joinRoom', (roomId, lexusId1, lexusId2) => {
     socket.join(roomId);
     console.log(`Client ${lexusId1} joined room ${roomId} to chat with ${lexusId2}`);
   });
@@ -45,7 +52,7 @@ io.on('connection', (socket) => {
     console.log(`Message sent to room ${sortedRoomId}:`, message);
   });
 
-  socket.on('leaveRoom', (roomId,lexusId) => {
+  socket.on('leaveRoom', (roomId, lexusId) => {
     socket.leave(roomId);
     console.log(`Client ${lexusId} left room ${roomId}`);
   });
