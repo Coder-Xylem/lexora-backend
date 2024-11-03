@@ -21,7 +21,7 @@ app.use(express.static('public'));
 
 // Serve a default static image if no specific path is provided
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/download.jpeg.png');
+  res.sendFile(__dirname + '/public/download.png');
 });
 
 app.use((err, req, res, next) => {
