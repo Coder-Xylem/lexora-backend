@@ -27,7 +27,12 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 
-// Use routes
+// Create HTTP server and integrate Socket.IO
+const server = http.createServer(app);
+const io = socketIo(server, { cors: { origin: '*' } });
+app.set('socketio', io);  // Make io accessible globally if needed in other routes
+
+// Now that io is defined, use it in chatRoutes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes(io));  // Ensure chatRoutes is a function that returns a router
@@ -42,11 +47,6 @@ app.use((err, req, res, next) => {
   console.error(err.stack);  // Log the error
   res.status(err.status || 500).json({ error: err.message || 'Server Error' });
 });
-
-// Create HTTP server and integrate Socket.IO
-const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: '*' } });
-app.set('socketio', io);  // Make io accessible globally if needed in other routes
 
 // Socket.IO connection
 io.on('connection', (socket) => {
