@@ -8,7 +8,7 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors({ 
-  origin: 'https://lexora-taupe.vercel.app', 
+  origin: 'https://lexora-taupe.vercel.app/login', 
   credentials: true 
 }));
 app.use(cookieParser());
