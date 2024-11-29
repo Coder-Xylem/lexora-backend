@@ -7,24 +7,31 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS configuration
+// Define allowed origins and methods for CORS
+const allowedOrigins = ['https://lexora-taupe.vercel.app'];
 const corsOptions = {
-  origin: 'https://lexora-taupe.vercel.app', // Frontend origin
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], // Allowed methods
-  credentials: true, // Allow cookies and headers for auth
-  preflightContinue: false, // End preflight requests at the CORS middleware
-  optionsSuccessStatus: 200, // For legacy browsers
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 200,
 };
 
 // Middleware setup
-app.use(cors(corsOptions)); // Enable CORS middleware
 app.use(cookieParser());
 app.use(express.json());
 
-// Route imports
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const chatRoutes = require('./routes/chatRoutes');
+// Apply CORS only for specific routes
+app.use('/api/auth/login', cors(corsOptions));
+app.use('/api/auth/register', cors(corsOptions));
+app.use('/api/user', cors(corsOptions));
+app.use('/api/chat', cors(corsOptions));
 
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);
@@ -33,13 +40,18 @@ const io = socketIo(server, {
     origin: 'https://lexora-taupe.vercel.app',
     methods: ['GET', 'POST'],
     credentials: true,
-  }
+  },
 });
 
 // Make socket.io available globally
 app.set('socketio', io);
 
 // API Routes
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+
+// Route imports
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes(io)); // Pass `io` to chat routes
