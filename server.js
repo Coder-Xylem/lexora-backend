@@ -8,21 +8,21 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware setup
+// CORS configuration
 const corsOptions = {
-  origin: 'https://lexora-taupe.vercel.app', // No trailing slash
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed methods
-  credentials: true // If sending cookies or auth headers
+  origin: ['https://lexora-taupe.vercel.app'], // Allowed frontend origins
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], // Allowed methods, including OPTIONS for preflight
+  credentials: true // Allow cookies and authentication headers
 };
 
-app.use(cors(corsOptions));
-app.use(cookieParser());
-app.use(express.json());
+app.use(cors(corsOptions));  // Use CORS middleware
+app.use(cookieParser());     // Parse cookies
+app.use(express.json());     // Parse incoming JSON requests
 
 // Database connection
 connectDB();
 
-// Serve static files
+// Serve static files (if any)
 app.use(express.static('public'));
 
 // Route imports
@@ -32,8 +32,17 @@ const chatRoutes = require('./routes/chatRoutes');
 
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: '*' } });
+const io = socketIo(server, {
+  cors: {
+    origin: ['https://lexora-taupe.vercel.app'], // Match frontend origin
+    methods: ['GET', 'POST'], // Match allowed methods for Socket.IO
+    credentials: true // Allow credentials if needed (cookies or headers)
+  }
+});
 app.set('socketio', io); // Make `io` available globally
+
+// Enable preflight for all routes
+app.options('*', cors(corsOptions)); // Handle preflight OPTIONS request
 
 // Route configuration
 app.use('/api/auth', authRoutes);
@@ -55,22 +64,26 @@ app.use((err, _, res, __) => {
 io.on('connection', (socket) => {
   console.log(`New client connected: ${socket.id}`);
 
+  // Join room (sender and receiver)
   socket.on('joinRoom', (roomId, senderId, receiverId) => {
     socket.join(roomId);
     console.log(`Client ${senderId} joined room ${roomId} with ${receiverId}`);
   });
 
+  // Send a chat message
   socket.on('chatMessage', ({ senderId, receiverId, message }) => {
     const roomId = [senderId, receiverId].sort().join('-'); // Ensure consistent room ID
     socket.to(roomId).emit('message', { text: message, isSender: false });
     console.log(`Message sent to room ${roomId}: ${message}`);
   });
 
+  // Leave room (if user disconnects or leaves)
   socket.on('leaveRoom', (roomId, clientId) => {
     socket.leave(roomId);
     console.log(`Client ${clientId} left room ${roomId}`);
   });
 
+  // Handle client disconnect
   socket.on('disconnect', () => {
     console.log(`Client disconnected: ${socket.id}`);
   });
