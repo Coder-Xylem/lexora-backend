@@ -11,8 +11,7 @@ const app = express();
 // Middleware setup
 const corsOptions = {
   origin: '*',
-  credentials: true ,
-  allowedHeaders: ['Content-Type', 'Authorization'],
+
   withCredentials: true
 };
 
