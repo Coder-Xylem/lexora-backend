@@ -2,77 +2,79 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
-const connectDB = require('./config/db'); 
+const connectDB = require('./config/db');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
 
 // Middleware setup
-app.use(cors({ 
-  origin: 'https://lexora-taupe.vercel.app',  // Allow all paths from the domain
-  credentials: true 
-}));
+app.use(
+  cors({
+    origin: 'https://lexora-taupe.vercel.app/',
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use(express.json());
 
-// Connect to the database
+// Database connection
 connectDB();
 
-// Serve static files from the "public" directory
+// Serve static files
 app.use(express.static('public'));
 
-// Route definitions
+// Route imports
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 
-// Create HTTP server and integrate Socket.IO
+// HTTP server and Socket.IO setup
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: '*' } });
-app.set('socketio', io);  // Make io accessible globally if needed in other routes
+app.set('socketio', io); // Make `io` available globally
 
-// Now that io is defined, use it in chatRoutes
+// Route configuration
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/chat', chatRoutes(io));  // Ensure chatRoutes is a function that returns a router
+app.use('/api/chat', chatRoutes(io)); // Pass `io` to chatRoutes
 
-// Default route to serve "download.png" when no specific route is matched
-app.get('*', (req, res) => {
-  res.sendFile(__dirname + '/public/download.png');
+// Fallback route to serve a default file
+app.get('*', (_, res) => {
+  res.sendFile(`${__dirname}/public/download.png`);
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);  // Log the error
+// Global error handler
+app.use((err, _, res, __) => {
+  console.error(err.stack);
   res.status(err.status || 500).json({ error: err.message || 'Server Error' });
 });
 
-// Socket.IO connection
+// Socket.IO connection logic
 io.on('connection', (socket) => {
-  console.log('New client connected:', socket.id);
-  
-  socket.on('joinRoom', (roomId, lexusId1, lexusId2) => {
+  console.log(`New client connected: ${socket.id}`);
+
+  socket.on('joinRoom', (roomId, senderId, receiverId) => {
     socket.join(roomId);
-    console.log(`Client ${lexusId1} joined room ${roomId} to chat with ${lexusId2}`);
+    console.log(`Client ${senderId} joined room ${roomId} with ${receiverId}`);
   });
 
   socket.on('chatMessage', ({ senderId, receiverId, message }) => {
-    const sortedRoomId = [senderId, receiverId].sort().join('-'); // Consistent room ID
-    socket.to(sortedRoomId).emit('message', { text: message, isSender: false });
-    console.log(`Message sent to room ${sortedRoomId}:`, message);
+    const roomId = [senderId, receiverId].sort().join('-'); // Ensure consistent room ID
+    socket.to(roomId).emit('message', { text: message, isSender: false });
+    console.log(`Message sent to room ${roomId}: ${message}`);
   });
 
-  socket.on('leaveRoom', (roomId, lexusId) => {
+  socket.on('leaveRoom', (roomId, clientId) => {
     socket.leave(roomId);
-    console.log(`Client ${lexusId} left room ${roomId}`);
+    console.log(`Client ${clientId} left room ${roomId}`);
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log(`Client disconnected: ${socket.id}`);
   });
 });
 
-// Start the server
+// Start server
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

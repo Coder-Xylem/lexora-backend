@@ -38,22 +38,30 @@ router.patch('/:lexusId/availability', async (req, res) => {
 });
 
 // Add a friend to the current user's list by searching for friend using lexusId
+// Add a friend to the current user's list by searching for friend using lexusId
 router.post('/add-friend/:friendId', verifyJWT, async (req, res) => {
-  const { friendId } = req.params; // Expecting friendId in the request body
-  const lexusId = req.user.lexusId; // Get user lexusId from JWT
-  console.log("Request from user route:", friendId, lexusId);
-  
+  const { friendId } = req.params; // Friend's Lexus ID
+  const lexusId = req.user.lexusId; // User's Lexus ID from JWT
+
+  console.log("Request from user route to add friend:", friendId, lexusId);
+
   // Validate that friendId is provided
   if (!friendId) {
     console.log("Friend ID is required");
     return res.status(400).json({ error: 'Friend ID is required' });
   }
 
+  // Check if the user is trying to add themselves as a friend
+  if (friendId === lexusId) {
+    alert("You cannot add yourself as a friend.");
+    console.log("You cannot add yourself as a friend.");
+    return res.status(400).json({ error: "You cannot add yourself as a friend." });
+  }
+
   try {
     // Find the current user by lexusId
     const user = await User.findOne({ lexusId });
-    // console.log("User:", user);
-    
+
     // Find the friend by lexusId (friendId)
     const friend = await User.findOne({ lexusId: friendId });
 
@@ -67,23 +75,40 @@ router.post('/add-friend/:friendId', verifyJWT, async (req, res) => {
     }
 
     // Check if the friend is already in the user's friend list
-    if (user.friends.includes(friendId)) { // Check using lexusId
+    if (user.friends.includes(friendId)) {
       console.log("Friend already added");
       return res.status(400).json({ error: 'Friend already added' });
     }
 
-    // Add friend to current user's friend list using lexusId
-    user.friends.push(friendId); // Use friendId (lexusId) directly
-    await user.save(); // Only save the user
+    // Add friend to the current user's friend list
+    user.friends.push(friendId);
 
-    // Return the updated friend list
+    // Check if the user is already in the friend's friend list
+    if (!friend.friends.includes(lexusId)) {
+      // Add user to the friend's friend list
+      friend.friends.push(lexusId);
+    }
+
+    // Save both users
+    await user.save();
+    await friend.save();
+
+    // Return the updated friend lists
     const updatedFriendList = await User.findOne({ lexusId }).select('friends lexusId email');
-    res.json({ friends: updatedFriendList.friends }); 
+    const updatedFriendOfFriend = await User.findOne({ lexusId: friendId }).select('friends lexusId email');
+
+    res.json({
+      message: 'Friend added successfully',
+      userFriends: updatedFriendList.friends,
+      friendFriends: updatedFriendOfFriend.friends
+    });
+
   } catch (error) {
     console.log("Error in user route add friend:", error);
     res.status(500).json({ error: 'Failed to add friend' });
   }
 });
+
 
 // Search for users by lexusId
 router.get('/search/:query', async (req, res) => {
