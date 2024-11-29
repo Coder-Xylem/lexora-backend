@@ -1,26 +1,19 @@
 const express = require('express');
 const { sendMessage, getMessages } = require('../controllers/chatController');
-// const { verifyJWT } = require('../utils/authMiddleware');
 
 module.exports = (io) => {
   const router = express.Router();
 
-  // Pass `io` for socket functionality
-//   router.post('/send',verifyJWT)
-  router.post('/send', (req, res) =>{ 
+  router.post('/send', (req, res) => {
+    console.log('Incoming message request:', req.body);
     
-    console.log("request ayi from chat route", req.body);
-    sendMessage(req, res, io);})
+    sendMessage(req, res, io);
+  });
 
-
-  router.get('/:userId1/:userId2', (req, res) =>{ 
-    
-    console.log("request ayi from chat route", req.body);
-    getMessages(req, res, io);})
-
-
-
-  // router.get('/:userId1/:userId2', getMessages);
+  router.get('/:userId1/:userId2', (req, res) => {
+    console.log('Fetching messages request:', req.params);
+    getMessages(req, res);
+  });
 
   return router;
 };
