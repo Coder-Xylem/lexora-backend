@@ -1,29 +1,25 @@
 const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const http = require('http');
 const socketIo = require('socket.io');
-const cors = require('cors');
-const connectDB = require('./config/db');
-const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ['https://lexora-taupe.vercel.app'], // Allowed frontend origins
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], // Allowed methods, including OPTIONS for preflight
-  credentials: true // Allow cookies and authentication headers
+  origin: 'https://lexora-taupe.vercel.app', // Frontend origin
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], // Allowed methods
+  credentials: true, // Allow cookies and headers for auth
+  preflightContinue: false, // End preflight requests at the CORS middleware
+  optionsSuccessStatus: 200, // For legacy browsers
 };
 
-app.use(cors(corsOptions));  // Use CORS middleware
-app.use(cookieParser());     // Parse cookies
-app.use(express.json());     // Parse incoming JSON requests
-
-// Database connection
-connectDB();
-
-// Serve static files (if any)
-app.use(express.static('public'));
+// Middleware setup
+app.use(cors(corsOptions)); // Enable CORS middleware
+app.use(cookieParser());
+app.use(express.json());
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
@@ -34,61 +30,52 @@ const chatRoutes = require('./routes/chatRoutes');
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: ['https://lexora-taupe.vercel.app'], // Match frontend origin
-    methods: ['GET', 'POST'], // Match allowed methods for Socket.IO
-    credentials: true // Allow credentials if needed (cookies or headers)
+    origin: 'https://lexora-taupe.vercel.app',
+    methods: ['GET', 'POST'],
+    credentials: true,
   }
 });
-app.set('socketio', io); // Make `io` available globally
 
-// Enable preflight for all routes
-app.options('*', cors(corsOptions)); // Handle preflight OPTIONS request
+// Make socket.io available globally
+app.set('socketio', io);
 
-// Route configuration
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/chat', chatRoutes(io)); // Pass `io` to chatRoutes
+app.use('/api/chat', chatRoutes(io)); // Pass `io` to chat routes
 
-// Fallback route to serve a default file
+// Fallback route for handling unmatched routes
 app.get('*', (_, res) => {
   res.sendFile(`${__dirname}/public/download.png`);
 });
 
-// Global error handler
+// Error handler for all routes
 app.use((err, _, res, __) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ error: err.message || 'Server Error' });
 });
 
-// Socket.IO connection logic
+// Socket.IO connection
 io.on('connection', (socket) => {
   console.log(`New client connected: ${socket.id}`);
 
-  // Join room (sender and receiver)
+  // Logic for rooms and messages
   socket.on('joinRoom', (roomId, senderId, receiverId) => {
     socket.join(roomId);
     console.log(`Client ${senderId} joined room ${roomId} with ${receiverId}`);
   });
 
-  // Send a chat message
   socket.on('chatMessage', ({ senderId, receiverId, message }) => {
-    const roomId = [senderId, receiverId].sort().join('-'); // Ensure consistent room ID
+    const roomId = [senderId, receiverId].sort().join('-');
     socket.to(roomId).emit('message', { text: message, isSender: false });
     console.log(`Message sent to room ${roomId}: ${message}`);
   });
 
-  // Leave room (if user disconnects or leaves)
-  socket.on('leaveRoom', (roomId, clientId) => {
-    socket.leave(roomId);
-    console.log(`Client ${clientId} left room ${roomId}`);
-  });
-
-  // Handle client disconnect
   socket.on('disconnect', () => {
     console.log(`Client disconnected: ${socket.id}`);
   });
 });
 
-// Start server
+// Start the server
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
