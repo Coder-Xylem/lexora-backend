@@ -9,12 +9,13 @@ require('dotenv').config();
 const app = express();
 
 // Middleware setup
-app.use(
-  cors({
-    origin: 'https://lexora-taupe.vercel.app/',
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: 'https://lexora-taupe.vercel.app', // No trailing slash
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed methods
+  credentials: true // If sending cookies or auth headers
+};
+
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 
