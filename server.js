@@ -10,8 +10,7 @@ const app = express();
 
 // Middleware setup
 const corsOptions = {
-  origin: 'https://lexora-taupe.vercel.app',
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS', 'HEAD', 'CONNECT', 'TRACE'], // Allowed methods
+  origin: '*',
   credentials: true ,
   allowedHeaders: ['Content-Type', 'Authorization'],
   withCredentials: true
