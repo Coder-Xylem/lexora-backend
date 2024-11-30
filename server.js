@@ -12,19 +12,14 @@ const app = express();
 const allowedOrigins = [
   'https://lexora-taupe.vercel.app',
   'https://testb-phi.vercel.app',
-  'http://localhost:3000', // Add localhost for development if needed
 ];
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
+  origin: 'https://lexora-taupe.vercel.app/*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS',], // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  withCredentials: true
+}
 
 app.use(cors(corsOptions));
 
