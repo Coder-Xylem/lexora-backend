@@ -9,12 +9,25 @@ require('dotenv').config();
 const app = express();
 
 // Middleware setup
-const corsOptions = {
-  origin: 'https://testb-phi.vercel.app',
-    credentials: true, };
+const allowedOrigins = [
+  'https://lexora-taupe.vercel.app',
+  'https://testb-phi.vercel.app',
+  'http://localhost:3000', // Add localhost for development if needed
+];
 
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
 
 app.use(cors(corsOptions));
+
 app.use(cookieParser());
 app.use(express.json());
 
