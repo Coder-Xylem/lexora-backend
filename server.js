@@ -10,12 +10,11 @@ const app = express();
 
 // Middleware setup
 const corsOptions = {
-  origin: '*',
+  origin: 'https://testb-phi.vercel.app',
+    credentials: true, };
 
-  withCredentials: true
-};
 
-app.use('/api/auth/register',cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 
