@@ -8,12 +8,6 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware setup
-const allowedOrigins = [
-  'https://lexora-taupe.vercel.app',
-  'https://testb-phi.vercel.app',
-];
-
 const corsOptions = {
   origin: 'https://lexora-taupe.vercel.app/*',
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS',], // Allowed methods
@@ -39,8 +33,8 @@ const chatRoutes = require('./routes/chatRoutes');
 
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: '*' } });
-app.set('socketio', io); // Make `io` available globally
+const io = socketIo(server, { cors: { origin: 'https://lexora-taupe.vercel.app' } });
+app.set('socketio', io);
 
 // Route configuration
 app.use('/api/auth', authRoutes);
