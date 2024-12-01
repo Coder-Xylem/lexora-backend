@@ -16,18 +16,33 @@ const app = express();
 
 // Dynamic CORS Middleware
 app.use((req, res, next) => {
-  
-    res.header('Access-Control-Allow-Origin', 'https://lexora-taupe.vercel.app');
-  
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'https://xl3llw34-5173.inc1.devtunnels.ms',
+    'https://lexora-taupe.vercel.app',
+
+    // Add more URLs as needed
+  ];
+
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin); // Allow matching origin
+  } else {
+    res.header('Access-Control-Allow-Origin', '*'); // You can also deny or wildcard, but restrict it based on your needs
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
+
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
+    res.sendStatus(200); // Respond to preflight requests
   } else {
-    next();
+    next(); // Pass to the next middleware
   }
 });
+
 
 // Middleware setup
 app.use(cookieParser());
@@ -48,12 +63,26 @@ const chatRoutes = require('./routes/chatRoutes');
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: 'https://lexora-taupe.vercel.app',
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'https://lexora-taupe.vercel.app',
+        'http://localhost:5173',
+        'https://xl3llw34-5173.inc1.devtunnels.ms',
+        'https://another-allowed-url.com', // Add other URLs here
+      ];
+
+      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        callback(null, true); // Allow the connection
+      } else {
+        callback(new Error('Not allowed by CORS')); // Reject the connection
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
   transports: ['websocket', 'polling'], // Support WebSocket and fallback to polling
 });
+
 app.set('socketio', io);
 
 // Route configuration
