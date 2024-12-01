@@ -10,22 +10,24 @@ const app = express();
 
 const allowedOrigins = [
   'https://lexora-taupe.vercel.app',
-  'https://testb-phi.vercel.app',
-  'http://localhost:3000', // Optional for local development
+  'http://localhost:3000', // For local development
 ];
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true); // Allow requests from the specified origins
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'], // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-  credentials: true, // Allow cookies and other credentials
-};
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true'); // Allow credentials
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200); // Respond to preflight requests
+  } else {
+    next();
+  }
+});
+
 
 app.use(cors(corsOptions));
 
