@@ -8,48 +8,22 @@ require('dotenv').config();
 
 const app = express();
 
-// Allowed Origins for CORS
-// const allowedOrigins = [
-//   'https://lexora-taupe.vercel.app',
-//   'http://localhost:3000', // For local development
-// ];
-
 // Dynamic CORS Middleware
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'https://xl3llw34-5173.inc1.devtunnels.ms',
-    'https://lexora-taupe.vercel.app',
+const allowedOrigins = [
+  'https://lexora-taupe.vercel.app',
+  'http://localhost:5173', // For local testing
+];
 
-    // Add more URLs as needed
-  ];
-
-  const origin = req.headers.origin;
-
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin); // Allow matching origin
-  } else {
-    res.header('Access-Control-Allow-Origin', '*'); // You can also deny or wildcard, but restrict it based on your needs
-  }
-
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200); // Respond to preflight requests
-  } else {
-    next(); // Pass to the next middleware
-  }
-});
-
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
 
 // Middleware setup
 app.use(cookieParser());
 app.use(express.json());
-
-// Database connection
-connectDB();
+connectDB(); // Database connection
 
 // Serve static files
 app.use(express.static('public'));
@@ -59,38 +33,25 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 
-// HTTP server and Socket.IO setup
+// Create HTTP server and attach Socket.IO
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        'https://lexora-taupe.vercel.app',
-        'http://localhost:5173',
-        'https://xl3llw34-5173.inc1.devtunnels.ms',
-        'https://another-allowed-url.com', // Add other URLs here
-      ];
-
-      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-        callback(null, true); // Allow the connection
-      } else {
-        callback(new Error('Not allowed by CORS')); // Reject the connection
-      }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
     credentials: true,
   },
-  transports: ['websocket', 'polling'], // Support WebSocket and fallback to polling
+  transports: ['websocket', 'polling'],
 });
 
 app.set('socketio', io);
 
-// Route configuration
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/chat', chatRoutes(io)); // Pass `io` to chatRoutes
+app.use('/api/chat', chatRoutes(io)); // Pass Socket.IO to chatRoutes
 
-// Fallback route to serve a default file for unmatched routes
+// Fallback route to handle unmatched requests
 app.get('*', (_, res) => {
   res.sendFile(`${__dirname}/public/download.png`);
 });
@@ -101,7 +62,7 @@ app.use((err, _, res, __) => {
   res.status(err.status || 500).json({ error: err.message || 'Server Error' });
 });
 
-// Socket.IO connection logic
+// Socket.IO events
 io.on('connection', (socket) => {
   console.log(`New client connected: ${socket.id}`);
 
@@ -112,10 +73,7 @@ io.on('connection', (socket) => {
 
   socket.on('chatMessage', ({ senderId, receiverId, message }) => {
     const roomId = [senderId, receiverId].sort().join('-');
-    io.to(roomId).emit('message', {
-      senderLexusId: senderId,
-      message,
-    });
+    io.to(roomId).emit('message', { senderLexusId: senderId, message });
     console.log(`Message sent to room: ${roomId}`);
   });
 
