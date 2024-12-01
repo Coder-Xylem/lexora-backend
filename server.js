@@ -33,7 +33,7 @@ const chatRoutes = require('./routes/chatRoutes');
 
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: 'https://lexora-taupe.vercel.app' } });
+const io = socketIo(server, { cors: { origin: ["https://lexora-taupe.vercel.app"] } });
 app.set('socketio', io);
 
 // Route configuration
