@@ -8,11 +8,13 @@ require('dotenv').config();
 
 const app = express();
 
+// Allowed Origins for CORS
 const allowedOrigins = [
   'https://lexora-taupe.vercel.app',
   'http://localhost:3000', // For local development
 ];
 
+// Dynamic CORS Middleware
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -20,18 +22,15 @@ app.use((req, res, next) => {
   }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true'); // Allow credentials
+  res.header('Access-Control-Allow-Credentials', 'true');
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200); // Respond to preflight requests
+    res.sendStatus(200);
   } else {
     next();
   }
 });
 
-
-app.use(cors(corsOptions));
-
-
+// Middleware setup
 app.use(cookieParser());
 app.use(express.json());
 
@@ -48,13 +47,13 @@ const chatRoutes = require('./routes/chatRoutes');
 
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);
-const io = require('socket.io')(server, {
+const io = socketIo(server, {
   cors: {
-    origin: ['https://lexora-taupe.vercel.app', 'https://testb-phi.vercel.app'], // Allowed origins
-    methods: ['GET', 'POST'],
-    credentials: true, // Allow credentials (cookies)
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
   },
-  transports: ['websocket', 'polling'], // Allow WebSocket and fallback to polling
+  transports: ['websocket', 'polling'], // Support WebSocket and fallback to polling
 });
 app.set('socketio', io);
 
@@ -63,7 +62,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes(io)); // Pass `io` to chatRoutes
 
-// Fallback route to serve a default file
+// Fallback route to serve a default file for unmatched routes
 app.get('*', (_, res) => {
   res.sendFile(`${__dirname}/public/download.png`);
 });
@@ -80,23 +79,26 @@ io.on('connection', (socket) => {
 
   socket.on('joinRoom', ({ roomId }) => {
     socket.join(roomId);
-    console.log(`Client joined room ${roomId}`);
-});
+    console.log(`Client joined room: ${roomId}`);
+  });
 
-socket.on('chatMessage', ({ senderId, receiverId, message }) => {
+  socket.on('chatMessage', ({ senderId, receiverId, message }) => {
     const roomId = [senderId, receiverId].sort().join('-');
     io.to(roomId).emit('message', {
       senderLexusId: senderId,
       message,
     });
-    console.log(`Message sent to room ${roomId}`);
-});
+    console.log(`Message sent to room: ${roomId}`);
+  });
 
-socket.on('leaveRoom', ({ roomId }) => {
+  socket.on('leaveRoom', ({ roomId }) => {
     socket.leave(roomId);
-    console.log(`Client left room ${roomId}`);
-});
+    console.log(`Client left room: ${roomId}`);
+  });
 
+  socket.on('disconnect', () => {
+    console.log(`Client disconnected: ${socket.id}`);
+  });
 });
 
 // Start server
