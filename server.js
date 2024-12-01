@@ -9,7 +9,7 @@ require('dotenv').config();
 const app = express();
 
 const corsOptions = {
-  origin: 'https://lexora-taupe.vercel.app/*',
+  origin: 'https://lexora-taupe.vercel.app',
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS',], // Allowed methods
   allowedHeaders: ['Content-Type', 'Authorization'],
   withCredentials: true
