@@ -12,7 +12,8 @@ const corsOptions = {
   origin: 'https://lexora-taupe.vercel.app',
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS',], // Allowed methods
   allowedHeaders: ['Content-Type', 'Authorization'],
-  withCredentials: true
+  withCredentials: true,
+  credentials: true,
 }
 
 app.use(cors(corsOptions));
