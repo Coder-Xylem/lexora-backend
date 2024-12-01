@@ -8,15 +8,27 @@ require('dotenv').config();
 
 const app = express();
 
+const allowedOrigins = [
+  'https://lexora-taupe.vercel.app',
+  'https://testb-phi.vercel.app',
+  'http://localhost:3000', // Optional for local development
+];
+
 const corsOptions = {
-  origin: 'https://lexora-taupe.vercel.app',
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS',], // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  withCredentials: true,
-  credentials: true,
-}
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true); // Allow requests from the specified origins
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'], // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  credentials: true, // Allow cookies and other credentials
+};
 
 app.use(cors(corsOptions));
+
 
 app.use(cookieParser());
 app.use(express.json());
@@ -34,7 +46,14 @@ const chatRoutes = require('./routes/chatRoutes');
 
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: ["https://lexora-taupe.vercel.app"] } });
+const io = require('socket.io')(server, {
+  cors: {
+    origin: ['https://lexora-taupe.vercel.app', 'https://testb-phi.vercel.app'], // Allowed origins
+    methods: ['GET', 'POST'],
+    credentials: true, // Allow credentials (cookies)
+  },
+  transports: ['websocket', 'polling'], // Allow WebSocket and fallback to polling
+});
 app.set('socketio', io);
 
 // Route configuration
