@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
-const connectDB = require('./db');
+const connectDB = require('./config/db');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
@@ -48,9 +48,9 @@ connectDB();
 app.use(express.static('public'));
 
 // Route imports
-const authRoutes = require('../routes/authRoutes');
-const userRoutes = require('../routes/userRoutes');
-const chatRoutes = require('../routes/chatRoutes');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 // HTTP server and Socket.IO setup
 const server = http.createServer(app);

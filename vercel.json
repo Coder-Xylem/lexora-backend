@@ -1,0 +1,23 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "index.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "/index.js"
+      }
+    ],
+    "functions": {
+      "index.js": {
+        "runtime": "node16",
+        "memory": 512,
+        "maxDuration": 10
+      }
+    }
+  }
+  
