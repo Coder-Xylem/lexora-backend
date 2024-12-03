@@ -22,7 +22,7 @@ app.use((req, res, next) => {
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin); // Allow matching origin
   } else {
-    res.header('Access-Control-Allow-Origin', '*'); // You can also deny or wildcard, but restrict it based on your needs
+    res.header('Access-Control-Allow-Origin', ' '); // You can also deny or wildcard, but restrict it based on your needs
   }
 
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
