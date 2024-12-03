@@ -48,20 +48,23 @@ const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 
 const server = http.createServer(app);
+const allowedOrigins = [
+  'https://lexora-taupe.vercel.app',
+  'http://localhost:5173',
+  'https://lexora-backend-lbmv.vercel.app',
+  'https://xl3llw34-5173.inc1.devtunnels.ms',
+  'https://another-allowed-url.com',
+];
+
 const io = socketIo(server, {
   cors: {
     origin: (origin, callback) => {
-      const allowedOrigins = [
-        'https://lexora-taupe.vercel.app',
-        'http://localhost:5173',
-        'https://xl3llw34-5173.inc1.devtunnels.ms',
-        'https://another-allowed-url.com',
-      ];
-
-      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-        callback(null, true); 
+      // Allow requests with no origin (e.g., from Postman or local testing)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS')); 
+        console.error(`CORS Error: Origin ${origin} not allowed`);
+        callback(new Error('Not allowed by CORS'));
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
