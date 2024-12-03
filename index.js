@@ -79,9 +79,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes(io)); 
 
-app.get('*', (_, res) => {
-  res.sendFile(`${__dirname}/public/download.png`);
-});
+// app.get('*', (_, res) => {
+//   res.sendFile(`${__dirname}/public/download.png`);
+// });
 
 app.use((err, _, res, __) => {
   console.error(err.stack);
