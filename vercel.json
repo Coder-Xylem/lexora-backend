@@ -11,13 +11,6 @@
         "src": "/(.*)",
         "dest": "/index.js"
       }
-    ],
-    "functions": {
-      "index.js": {
-        "runtime": "node16",
-        "memory": 512,
-        "maxDuration": 10
-      }
-    }
+    ]
   }
   
