@@ -89,11 +89,11 @@ app.use((err, _, res, __) => {
 });
 
 io.on('connection', (socket) => {
-  console.log(`New client connected: ${socket.id}`);
+  // console.log(`New client connected: ${socket.id}`);
 
   socket.on('joinRoom', ({ roomId }) => {
     socket.join(roomId);
-    console.log(`Client joined room: ${roomId}`);
+    // console.log(`Client joined room: ${roomId}`);
   });
 
   socket.on('chatMessage', ({ senderId, receiverId, message }) => {
@@ -102,16 +102,16 @@ io.on('connection', (socket) => {
       senderLexusId: senderId,
       message,
     });
-    console.log(`Message sent to room: ${roomId}`);
+    // console.log(`Message sent to room: ${roomId}`);
   });
 
   socket.on('leaveRoom', ({ roomId }) => {
     socket.leave(roomId);
-    console.log(`Client left room: ${roomId}`);
+    // console.log(`Client left room: ${roomId}`);
   });
 
   socket.on('disconnect', () => {
-    console.log(`Client disconnected: ${socket.id}`);
+    // console.log(`Client disconnected: ${socket.id}`);
   });
 });
 

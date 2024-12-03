@@ -26,7 +26,7 @@ exports.getMessages = async (req, res) => {
 // **Send Message Controller**
 exports.sendMessage = async (req, res) => {
   const { senderId, receiverId, message, mediaUrl } = req.body;
-  console.log("req.body:", req.body);
+  // console.log("req.body:", req.body);
   let senderLexusId = senderId
   let receiverLexusId = receiverId 
   if (!senderLexusId || !receiverLexusId || !message) {

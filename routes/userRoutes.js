@@ -43,18 +43,18 @@ router.post('/add-friend/:friendId', verifyJWT, async (req, res) => {
   const { friendId } = req.params; // Friend's Lexus ID
   const lexusId = req.user.lexusId; // User's Lexus ID from JWT
 
-  console.log("Request from user route to add friend:", friendId, lexusId);
+  // console.log("Request from user route to add friend:", friendId, lexusId);
 
   // Validate that friendId is provided
   if (!friendId) {
-    console.log("Friend ID is required");
+    // console.log("Friend ID is required");
     return res.status(400).json({ error: 'Friend ID is required' });
   }
 
   // Check if the user is trying to add themselves as a friend
   if (friendId === lexusId) {
     alert("You cannot add yourself as a friend.");
-    console.log("You cannot add yourself as a friend.");
+    // console.log("You cannot add yourself as a friend.");
     return res.status(400).json({ error: "You cannot add yourself as a friend." });
   }
 
@@ -66,17 +66,17 @@ router.post('/add-friend/:friendId', verifyJWT, async (req, res) => {
     const friend = await User.findOne({ lexusId: friendId });
 
     if (!user) {
-      console.log("User not found");
+      // console.log("User not found");
       return res.status(404).json({ error: 'User not found' });
     }
     if (!friend) {
-      console.log("Friend not found");
+      // console.log("Friend not found");
       return res.status(404).json({ error: 'Friend not found' });
     }
 
     // Check if the friend is already in the user's friend list
     if (user.friends.includes(friendId)) {
-      console.log("Friend already added");
+      // console.log("Friend already added");
       return res.status(400).json({ error: 'Friend already added' });
     }
 
@@ -104,7 +104,7 @@ router.post('/add-friend/:friendId', verifyJWT, async (req, res) => {
     });
 
   } catch (error) {
-    console.log("Error in user route add friend:", error);
+    // console.log("Error in user route add friend:", error);
     res.status(500).json({ error: 'Failed to add friend' });
   }
 });
@@ -141,7 +141,7 @@ router.get('/contacts/:lexusId', async (req, res) => {
     res.json({ contacts: friends });
     
   } catch (error) {
-    console.log('Error fetching contacts:', error);
+    // console.log('Error fetching contacts:', error);
     res.status(500).json({ error: 'Error fetching contacts' });
   }
 });

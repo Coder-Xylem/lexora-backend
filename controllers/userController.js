@@ -82,11 +82,11 @@ exports.addFriend = async (req, res) => {
     
     await user.save();
     await friend.save();
-    console.log(lexusId, friendId);
+    // console.log(lexusId, friendId);
     
     res.json({ message: 'Friend added successfully', friends: user.friends });
   } catch (error) {
-    console.log("error ayi from user controller", error, lexusId, friendId);
+    // console.log("error ayi from user controller", error, lexusId, friendId);
     
     console.error('Error adding friend:', error);
     res.status(500).json({ error: 'Failed to add friend' });
