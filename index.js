@@ -8,26 +8,21 @@ require('dotenv').config();
 
 const app = express();
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://xl3llw34-5173.inc1.devtunnels.ms',
+  'https://lexora-taupe.vercel.app',
+  'https://lexora-backend-lbmv.vercel.app',
+];
+
 app.use((req, res, next) => {
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'https://xl3llw34-5173.inc1.devtunnels.ms',
-    'https://lexora-taupe.vercel.app',
-
-  ];
-
   const origin = req.headers.origin;
-
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
-  } else {
-    res.header('Access-Control-Allow-Origin', ' '); 
   }
-
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
-
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
@@ -35,31 +30,27 @@ app.use((req, res, next) => {
   }
 });
 
-
 app.use(cookieParser());
 app.use(express.json());
-
 connectDB();
-
 app.use(express.static('public'));
 
+// API routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/chat', chatRoutes);
 
+// Create server
 const server = http.createServer(app);
-const allowedOrigins = [
-  'https://lexora-taupe.vercel.app',
-  'http://localhost:5173',
-  'https://lexora-backend-lbmv.vercel.app',
-  'https://xl3llw34-5173.inc1.devtunnels.ms',
-  
-];
 
+// Configure Socket.io with a custom path
 const io = socketIo(server, {
+  path: '/ws', // Custom WebSocket path
   cors: {
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., from Postman or local testing)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -73,21 +64,7 @@ const io = socketIo(server, {
   transports: ['websocket', 'polling'],
 });
 
-app.set('socketio', io);
-
-app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/chat', chatRoutes(io)); 
-
-// app.get('*', (_, res) => {
-//   res.sendFile(`${__dirname}/public/download.png`);
-// });
-
-app.use((err, _, res, __) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({ error: err.message || 'Server Error' });
-});
-
+// WebSocket Events
 io.on('connection', (socket) => {
   console.log(`New client connected: ${socket.id}`);
 
@@ -117,3 +94,6 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// app.get('*', (_, res) => {
+//   res.sendFile(`${__dirname}/public/download.png`);
+// });
