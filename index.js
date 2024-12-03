@@ -46,22 +46,14 @@ app.use('/api/chat', chatRoutes);
 // Create server
 const server = http.createServer(app);
 
-// Configure Socket.io with a custom path
+// Configure Socket.IO
 const io = socketIo(server, {
-  path: '/ws', // Custom WebSocket path
   cors: {
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.error(`CORS Error: Origin ${origin} not allowed`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
+    credentials: true, // Allow credentials for secure cookies/auth tokens
   },
-  transports: ['websocket', 'polling'],
+  transports: ['websocket', 'polling'], // Matching client transports
 });
 
 // WebSocket Events
@@ -94,6 +86,3 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-// app.get('*', (_, res) => {
-//   res.sendFile(`${__dirname}/public/download.png`);
-// });
