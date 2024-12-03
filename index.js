@@ -53,7 +53,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://lexora-backend-lbmv.vercel.app',
   'https://xl3llw34-5173.inc1.devtunnels.ms',
-  'https://another-allowed-url.com',
+  
 ];
 
 const io = socketIo(server, {
