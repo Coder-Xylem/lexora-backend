@@ -11,7 +11,7 @@ const app = express();
 app.use((req, res, next) => {
   const allowedOrigins = [
     'http://localhost:5173',
-    'https://xl3llw34-5173.inc1.devtunnels.ms',
+    'https://abdullah.ghiblify.store',
     'https://lexora-taupe.vercel.app',
     'https://lexora-o72ve7szt-coder-philosophers-projects.vercel.app',
     'https://6755dca70f558b000846af33--subtle-cannoli-a2576f.netlify.app',
@@ -54,7 +54,7 @@ const allowedOrigins = [
   'https://lexora-taupe.vercel.app',
   'http://localhost:5173',
   'https://lexora-backend-lbmv.vercel.app',
-  'https://xl3llw34-5173.inc1.devtunnels.ms',
+  'https://abdullah.ghiblify.store',
   'https://lexora-o72ve7szt-coder-philosophers-projects.vercel.app',
   'https://6755dca70f558b000846af33--subtle-cannoli-a2576f.netlify.app',
   
